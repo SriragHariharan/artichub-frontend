@@ -1,4 +1,6 @@
 import { useForm } from "react-hook-form";
+import axiosInstance from "../helpers/axios";
+import { useState } from "react";
 
 interface LoginUser {
     email: string;
@@ -6,17 +8,32 @@ interface LoginUser {
 }
 
 export default function Login() {
+  const [error, setError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     mode: "onChange",
+    defaultValues: {
+      email: "srirag01@ahub.com",
+      password: "password@123",
+    },
   });
 
   const onSubmit = (data: LoginUser) => {
     console.log(data);
-    // Handle form submission
+    axiosInstance
+      .post("/auth/login", data)
+      .then((response) => {
+        console.log(response);
+        localStorage.setItem("ahub-token", response.data.token);
+        window.location.href = "/";
+      })
+      .catch((error) => {
+        console.error(error);
+        setError(error.response.data.message);
+      })
   };
 
   return (
@@ -33,6 +50,12 @@ export default function Login() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6 text-left" onSubmit={handleSubmit(onSubmit)}>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm">
+                {error}
+              </div>
+            )}
             
             {/* Email Field */}
             <div>

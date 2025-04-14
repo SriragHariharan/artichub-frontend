@@ -1,4 +1,7 @@
 import { useForm } from "react-hook-form";
+import axiosInstance from "../helpers/axios";
+import { useNavigate } from "react-router";
+import { useState } from "react";
 
 interface SignupUser {
     username: string;
@@ -17,18 +20,38 @@ const interests = [
 ];
 
 export default function Signup() {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm({
-    mode: "onChange",
-  });
+  const navigate = useNavigate();
+  const[error, setError] = useState<string | null>(null);
+const {
+  register,
+  handleSubmit,
+  watch,
+  formState: { errors },
+} = useForm<SignupUser & { phone: string }>({
+  mode: "onChange",
+  defaultValues: {
+    username: "srirag",
+    email: "srirag01@ahub.com",
+    password: "password@123",
+    confirmPassword: "password@123",
+    interests: [],
+    phone: "9876543210",
+  },
+});
+
 
   const onSubmit = (data: SignupUser) => {
     console.log(data);
-    // Handle form submission
+    axiosInstance.post("/auth/signup", data)
+      .then((response) => {
+        console.log(response.data);
+        localStorage.setItem('ahub-token', response.data.token);
+        navigate("/");
+      })
+      .catch((error) => {
+        console.error(error);
+        setError(error.response.data.message);
+      });
   };
 
   const password = watch("password");
@@ -47,6 +70,12 @@ export default function Signup() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6 text-left" onSubmit={handleSubmit(onSubmit)}>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm text-center">
+                {error}
+              </div>
+            )}
             {/* Username Field */}
             <div>
               <label

@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 
 interface Article {
   id: string;
@@ -21,7 +22,7 @@ interface FeedCardProps {
 
 function FeedCard({ article }: FeedCardProps) {
   const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(article.likes);
+  const [likeCount, setLikeCount] = useState(article?.likes);
 
   const handleLike = () => {
     if (isLiked) {
@@ -33,12 +34,12 @@ function FeedCard({ article }: FeedCardProps) {
   };
 
   return (
-    <div className="mb-6 bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1">
+    <Link to={`/article/${article?._id}`} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1 cursor-pointer">
       {/* Article Image - Full width at top */}
       <div className="w-full h-48 overflow-hidden">
         <img
-          src={article.imageUrl}
-          alt={article.title}
+          src={article?.image ?? "https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg"}
+          alt={article?.title}
           className="w-full h-full object-cover"
         />
       </div>
@@ -48,18 +49,18 @@ function FeedCard({ article }: FeedCardProps) {
         {/* Category and Member Badge */}
         <div className="flex justify-between items-center mb-3">
           <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-wide">
-            {article.category}
+            {article?.category}
           </span>
         </div>
 
         {/* Article Title */}
         <h2 className="text-gray-900 font-bold text-xl mb-2 line-clamp-2">
-          {article.title}
+          {article?.title}
         </h2>
 
         {/* Article Preview Content */}
         {/* <p className="text-gray-700 text-base mb-4 line-clamp-3">
-          {article.content}
+          {article?.content}
         </p> */}
 
         {/* Author and Like Button */}
@@ -67,15 +68,15 @@ function FeedCard({ article }: FeedCardProps) {
           <div className="flex items-center">
             <img
               className="w-8 h-8 rounded-full mr-3"
-              src={article.author.avatar}
-              alt={`Avatar of ${article.author.name}`}
+              src={article?.author?.profilePic || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"}
+              alt={`Avatar of ${article?.author?.username}`}
             />
             <div className="text-sm">
               <p className="text-gray-900 font-medium leading-none">
-                {article.author.name}
+                {article?.author?.username}
               </p>
               <p className="text-gray-500">
-                {new Date(article.datePublished).toLocaleDateString("en-US", {
+                {new Date(article?.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
@@ -95,7 +96,7 @@ function FeedCard({ article }: FeedCardProps) {
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
