@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:4444'
+  baseURL: 'https://artichub-backend.onrender.com'
 });
 
 // Request interceptor - add auth token
