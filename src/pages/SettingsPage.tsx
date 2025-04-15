@@ -2,30 +2,46 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useProfile from '../hooks/useProfile';
 import axiosInstance from '../helpers/axios';
+import { useNavigate } from 'react-router';
 
 const SettingsPage = () => {
   const {profile, loading, error} = useProfile();
-  console.log(profile)
-
+  const navigate = useNavigate();
+  const [preferencesError, setPreferencesError] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [showPasswords, setShowPasswords] = useState(false); // State for password visibility
 
   const {
     register: registerProfile,
     handleSubmit: handleProfileSubmit,
     formState: { errors: profileErrors },
-    reset: resetProfileForm // Add reset function from useForm
+    reset: resetProfileForm
   } = useForm();
 
-  // Reset form with profile data when it's loaded
   useEffect(() => {
     if (profile) {
       resetProfileForm({
         username: profile.username
       });
-      // Set profile picture if it exists
       if (profile.profilePic) {
         setPreview(profile.profilePic);
+      }
+      // Initialize preferences based on profile interests
+      if (profile.interests) {
+        const initialPrefs = {
+          sports: false,
+          politics: false,
+          films: false,
+          space: false,
+          cooking: false,
+        };
+        profile.interests.forEach(interest => {
+          if (initialPrefs.hasOwnProperty(interest)) {
+            initialPrefs[interest] = true;
+          }
+        });
+        setPreferences(initialPrefs);
       }
     }
   }, [profile, resetProfileForm]);
@@ -39,26 +55,24 @@ const SettingsPage = () => {
   } = useForm({});
 
   const [preferences, setPreferences] = useState({
-    sports: true,
+    sports: false,
     politics: false,
-    films: true,
+    films: false,
     space: false,
-    cooking: true,
+    cooking: false,
   });
 
   const handleProfilePicChange = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    setProfilePic(file); // store the actual File object
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      // Optional: you can show a preview separately if needed
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  }
-};
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePic(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmitUsername = (data: { username: string }) => {
     axiosInstance.put("/profile/username", data)
@@ -73,7 +87,7 @@ const SettingsPage = () => {
   const onSubmitProfilePic = () => {
     if (profilePic) {
       const formData = new FormData();
-      formData.append('profilePic', profilePic); // now it's the File object
+      formData.append('profilePic', profilePic);
 
       axiosInstance
         .put('/profile/profilePic', formData, {
@@ -90,15 +104,41 @@ const SettingsPage = () => {
     }
   };
 
+  const handleSavePreferences = (preferences) => {
+    const selectedPrefs = Object.keys(preferences).filter((key) => preferences[key]);
+    console.log(selectedPrefs);
+    axiosInstance.put("/profile/interests", { interests: selectedPrefs })
+      .then((response) => {
+        console.log(response?.data?.data);
+    })
+      .catch((error) => {
+        setPreferencesError(error?.response?.data?.message);
+      });
+  }
 
-
-  const onSubmitPassword = (data) => {
-    console.log('Password changed:', data);
-    resetPasswordForm();
+  const[updatePasswordError, setUpdatePasswordError] = useState(null);
+  const onSubmitPassword = (data: { currentPassword: string, newPassword: string }) => {
+    console.log(data);
+    axiosInstance.put("/auth/password", data)
+      .then((response) => {
+        console.log(response?.data);
+        resetPasswordForm();
+        localStorage.removeItem('ahub-token');
+        navigate("/login");
+      })
+      .catch((error) => {
+        console.error(error?.response?.data?.message);
+        setUpdatePasswordError(error?.response?.data?.message);
+      });
   };
 
   const togglePreference = (pref) => {
     setPreferences((prev) => ({ ...prev, [pref]: !prev[pref] }));
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPasswords(!showPasswords);
   };
 
   return (
@@ -189,6 +229,14 @@ const SettingsPage = () => {
         <div className="border-t border-gray-200 pt-10">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Article Preferences</h2>
           <p className="text-gray-600 mb-6">Choose the topics you'd like to see more of</p>
+          <div className="flex">
+            current choices: &nbsp;
+            {
+              profile?.interests?.map((interest) => (
+                <span key={interest} className="flex items-center mr-4 bg-amber-300 text-black rounded-full px-4 py-0.5">{interest}</span>
+              ))
+            }
+          </div>
 
           <div className="space-y-4">
             {Object.keys(preferences).map((key) => (
@@ -206,11 +254,14 @@ const SettingsPage = () => {
               </div>
             ))}
           </div>
+          {preferencesError && (
+            <p className="text-sm text-red-600 mt-1">{preferencesError}</p>
+          )}
 
           <div className="mt-6 flex justify-end">
             <button
               type="button"
-              onClick={() => console.log('Preferences saved:', preferences)}
+              onClick={() => handleSavePreferences(preferences)}
               className="bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 text-sm"
             >
               Save Preferences
@@ -220,23 +271,35 @@ const SettingsPage = () => {
 
         {/* Password Change Section */}
         <div className="border-t border-gray-200 pt-10 space-y-6">
-          <h2 className="text-lg font-medium text-gray-900">Change Password</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-medium text-gray-900">Change Password</h2>
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              {showPasswords ? 'Hide Passwords' : 'Show Passwords'}
+            </button>
+          </div>
+          
           <form onSubmit={handlePasswordSubmit(onSubmitPassword)} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
                   Current Password
                 </label>
-                <input
-                  id="currentPassword"
-                  type="password"
-                  {...registerPassword('currentPassword', {
-                    required: 'Current password is required',
-                  })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                />
-                {passwordErrors.currentPassword && (
-                  <p className="text-sm text-red-600 mt-1">{passwordErrors.currentPassword.message}</p>
+                <div className="relative">
+                  <input
+                    id="currentPassword"
+                    type={showPasswords ? 'text' : 'password'}
+                    {...registerPassword('password', {
+                      required: 'Current password is required',
+                    })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  />
+                </div>
+                {passwordErrors.password && (
+                  <p className="text-sm text-red-600 mt-1">{passwordErrors.password.message}</p>
                 )}
               </div>
 
@@ -244,18 +307,20 @@ const SettingsPage = () => {
                 <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
                   New Password
                 </label>
-                <input
-                  id="newPassword"
-                  type="password"
-                  {...registerPassword('newPassword', {
-                    required: 'New password is required',
-                    minLength: {
-                      value: 8,
-                      message: 'Password must be at least 8 characters',
-                    },
-                  })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                />
+                <div className="relative">
+                  <input
+                    id="newPassword"
+                    type={showPasswords ? 'text' : 'password'}
+                    {...registerPassword('newPassword', {
+                      required: 'New password is required',
+                      minLength: {
+                        value: 8,
+                        message: 'Password must be at least 8 characters',
+                      },
+                    })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  />
+                </div>
                 {passwordErrors.newPassword && (
                   <p className="text-sm text-red-600 mt-1">{passwordErrors.newPassword.message}</p>
                 )}
@@ -265,20 +330,26 @@ const SettingsPage = () => {
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                   Confirm Password
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  {...registerPassword('confirmPassword', {
-                    required: 'Please confirm your password',
-                    validate: (val) => val === watchPassword('newPassword') || 'Passwords do not match',
-                  })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showPasswords ? 'text' : 'password'}
+                    {...registerPassword('confirmPassword', {
+                      required: 'Please confirm your password',
+                      validate: (val) => val === watchPassword('newPassword') || 'Passwords do not match',
+                    })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  />
+                </div>
                 {passwordErrors.confirmPassword && (
                   <p className="text-sm text-red-600 mt-1">{passwordErrors.confirmPassword.message}</p>
                 )}
               </div>
             </div>
+
+            {updatePasswordError && (
+              <p className="text-sm text-red-600 mt-1 text-center font-semibold leading-2">{updatePasswordError}</p>
+            )}
 
             <div className="flex justify-end">
               <button
