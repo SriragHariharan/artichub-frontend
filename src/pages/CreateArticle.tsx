@@ -6,25 +6,36 @@ import 'react-quill-new/dist/quill.bubble.css'; // Optional: For bubble style
 import axiosInstance from '../helpers/axios';
 import { useNavigate } from 'react-router';
 
+interface ArticleFormData {
+  title: string;
+  image: File | null;
+  category: string;
+  description: string;
+}
+
+
 const CreateArticle = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [editorContent, setEditorContent] = useState('');
   const navigate = useNavigate();
   
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-  } = useForm({
-    defaultValues: {
-      title: '',
-      image: null,
-    },
-    mode: 'onChange',
-  });
+    const {
+      register,
+      handleSubmit,
+      formState: { errors },
+      setValue,
+    } = useForm<ArticleFormData>({
+      defaultValues: {
+        title: '',
+        image: null,
+        category: '',
+        description: '',
+      },
+      mode: 'onChange',
+    });
 
-  const onSubmit = (data) => {
+
+  const onSubmit = (data: ArticleFormData) => {
     console.log(data);
     axiosInstance.post('/post', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then((response) => {
@@ -34,6 +45,7 @@ const CreateArticle = () => {
         console.error(error);
       });
   };
+
 
   const categories = [
       { id: "sports", name: "Sports" },
@@ -147,7 +159,7 @@ const CreateArticle = () => {
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                 />
                 {errors?.image && (
-                  <p className="mt-1 text-sm text-red-600">{errors?.image?.message}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors?.image?.message as string}</p>
                 )}
                 <p className="mt-1 text-xs text-gray-500">JPEG or PNG, max 2MB</p>
               </div>

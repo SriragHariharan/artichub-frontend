@@ -3,18 +3,21 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 interface Article {
-  id: string;
+  _id: string; // Fix: previously called `id`
   title: string;
   category: string;
   content: string;
+  image: string; // Fix: image, not imageUrl
+  createdAt: string; // Fix: used in `new Date(...)`
+
   author: {
-    name: string;
-    avatar: string;
+    username: string; // Fix: previously missing
+    profilePic: string; // Fix: previously called avatar
   };
-  datePublished: string;
+
   likes: number;
-  imageUrl: string;
 }
+
 
 interface FeedCardProps {
   article: Article;

@@ -1,7 +1,8 @@
 
+import { ReactNode } from 'react';
 import { Navigate } from 'react-router';
 
-const UnProtectedRoute = ({ children }: { children: JSX.Element }) => {
+const UnProtectedRoute = ({ children }: { children: ReactNode }) => {
   const token = localStorage.getItem('ahub-token');
   console.log(token, "token")
 

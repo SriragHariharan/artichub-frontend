@@ -5,7 +5,7 @@ import axiosInstance from '../helpers/axios';
 import { useNavigate } from 'react-router';
 
 const SettingsPage = () => {
-  const {profile, loading, error} = useProfile();
+  const {profile, error} = useProfile();
   const navigate = useNavigate();
   const [preferencesError, setPreferencesError] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
@@ -26,22 +26,6 @@ const SettingsPage = () => {
       });
       if (profile.profilePic) {
         setPreview(profile.profilePic);
-      }
-      // Initialize preferences based on profile interests
-      if (profile.interests) {
-        const initialPrefs = {
-          sports: false,
-          politics: false,
-          films: false,
-          space: false,
-          cooking: false,
-        };
-        profile.interests.forEach(interest => {
-          if (initialPrefs.hasOwnProperty(interest)) {
-            initialPrefs[interest] = true;
-          }
-        });
-        setPreferences(initialPrefs);
       }
     }
   }, [profile, resetProfileForm]);
@@ -150,6 +134,13 @@ const SettingsPage = () => {
           <p className="text-gray-600 mt-2">Manage your profile, password and article preferences</p>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 rounded-md bg-red-50 border border-red-300 text-red-800">
+            <h2 className="font-semibold text-red-700 text-md mb-1">Error Loading Article</h2>
+            <p className="text-sm">{typeof error === 'string' ? error : 'Something went wrong while fetching profile. Please try again later.'}</p>
+          </div>
+        )}
+
         {/* Profile Section */}
         <div className="space-y-6">
           <h2 className="text-lg font-medium text-gray-900">Profile Information</h2>
@@ -196,7 +187,7 @@ const SettingsPage = () => {
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
                 />
                 {profileErrors.username && (
-                  <p className="text-sm text-red-600 mt-1">{profileErrors.username.message}</p>
+                  <p className="text-sm text-red-600 mt-1">{profileErrors.username.message as string}</p>
                 )}
               </div>
 
@@ -299,7 +290,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 {passwordErrors.password && (
-                  <p className="text-sm text-red-600 mt-1">{passwordErrors.password.message}</p>
+                  <p className="text-sm text-red-600 mt-1">{passwordErrors.password.message as string}</p>
                 )}
               </div>
 
@@ -322,7 +313,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 {passwordErrors.newPassword && (
-                  <p className="text-sm text-red-600 mt-1">{passwordErrors.newPassword.message}</p>
+                  <p className="text-sm text-red-600 mt-1">{passwordErrors.newPassword.message as string}</p>
                 )}
               </div>
 
@@ -342,7 +333,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 {passwordErrors.confirmPassword && (
-                  <p className="text-sm text-red-600 mt-1">{passwordErrors.confirmPassword.message}</p>
+                  <p className="text-sm text-red-600 mt-1">{passwordErrors.confirmPassword.message as string}</p>
                 )}
               </div>
             </div>

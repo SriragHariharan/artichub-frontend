@@ -13,14 +13,10 @@ interface ArticleFormData {
   description: string;
 }
 
-interface Category {
-  id: string;
-  name: string;
-}
 
 const EditArticle = () => {
   const { id } = useParams<{ id: string }>();
-  const {articleDetails, loading, error} = useArticleDetails({ id });
+  const {articleDetails,  error} = useArticleDetails({ id });
   const navigate = useNavigate();
   const [editorContent, setEditorContent] = useState( articleDetails?.description ||'');
 
@@ -45,22 +41,8 @@ const EditArticle = () => {
     }
   }, [articleDetails, reset]);
 
-
-
-
-  // const categories: Category[] = [
-  //   { id: "sports", name: "Sports" },
-  //   { id: "politics", name: "Politics" },
-  //   { id: "films", name: "Films" },
-  //   { id: "space", name: "Space" },
-  //   { id: "cooking", name: "Cooking" },
-  // ];
-
   const onSubmit = async (data: ArticleFormData) => {
     try {
-      // const formData = new FormData();
-      // formData.append('title', data.title);
-      // formData.append('description', data.description);
 
       console.log(data);
 
@@ -103,7 +85,12 @@ const EditArticle = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Article</h1>
           <p className="text-gray-600">Update your article details below</p>
         </div>
-
+        {error && (
+          <div className="mb-6 p-4 rounded-md bg-red-50 border border-red-300 text-red-800">
+            <h2 className="font-semibold text-red-700 text-md mb-1">Error Loading Article</h2>
+            <p className="text-sm">{typeof error === 'string' ? error : 'Something went wrong while fetching article details. Please try again later.'}</p>
+          </div>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-6 rounded-lg shadow-md">
           {/* Title Field */}
           <div>

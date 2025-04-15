@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import axiosInstance from '../helpers/axios';
 
-function useArticleDetails({ id }: string) {
+function useArticleDetails({id}) {
     const [articleDetails, setArticleDetails] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
