@@ -1,5 +1,4 @@
 import { Heart } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router";
 
 interface Article {
@@ -15,7 +14,7 @@ interface Article {
     profilePic: string; // Fix: previously called avatar
   };
 
-  likes: number;
+  likes: number[];
 }
 
 
@@ -24,17 +23,6 @@ interface FeedCardProps {
 }
 
 function FeedCard({ article }: FeedCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(article?.likes);
-
-  const handleLike = () => {
-    if (isLiked) {
-      setLikeCount(likeCount - 1);
-    } else {
-      setLikeCount(likeCount + 1);
-    }
-    setIsLiked(!isLiked);
-  };
 
   return (
     <Link to={`/article/${article?._id}`} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1 cursor-pointer">
@@ -88,14 +76,13 @@ function FeedCard({ article }: FeedCardProps) {
             </div>
           </div>
           <button
-            onClick={handleLike}
             className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors"
             aria-label="Like article"
           >
             <Heart
-              className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : ""}`}
+              className={`w-5 h-5 fill-red-500 text-red-500`}
             />
-            <span className="text-sm">{likeCount}</span>
+            <span className="text-sm">{article?.likes?.length}</span>
           </button>
         </div>
       </div>

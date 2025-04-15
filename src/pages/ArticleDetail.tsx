@@ -1,18 +1,44 @@
 import { Heart, Edit, Trash } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import useArticleDetails from "../hooks/useArticleDetails";
 import axiosInstance from "../helpers/axios";
 
 
 const ArticleDetail = () => {
-  const [isLiked, setIsLiked] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { articleDetails, loading, error } = useArticleDetails({ id });
 
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+
+  useEffect(() => {
+    if (articleDetails) {
+      console.log(articleDetails?.isLiked, " ::: AD")
+      setIsLiked(articleDetails.isLiked);
+      setLikesCount(articleDetails.likes?.length || 0);
+    }
+  }, [articleDetails]);
+
+
   const handleLike = () => {
-    setIsLiked((prev) => !prev);
+    const updatedLike = !isLiked;
+    setIsLiked(!isLiked);
+    setLikesCount((prev) => prev + (updatedLike ? 1 : -1));
+
+
+    axiosInstance
+      .put(`/post/${id}/like`)
+      .then((response) => {
+        console.log("Article liked successfully:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error liking article:", error);
+        // rollback state change if error
+        setIsLiked((prev) => !prev);
+        setLikesCount((prev) => prev + (isLiked ? 1 : -1));
+      });
   };
 
   const handleDeleteArticle = () => {
@@ -43,8 +69,6 @@ const ArticleDetail = () => {
       </div>
     );
   }
-
-  const totalLikes = (articleDetails?.likes?.length ?? 0) + (isLiked ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -111,7 +135,7 @@ const ArticleDetail = () => {
                 }`}
               >
                 <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
-                <span>{totalLikes}</span>
+                <span>{likesCount}</span>
               </button>
             </div>
             <div>
