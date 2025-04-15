@@ -1,5 +1,6 @@
 
 import { Navigate } from 'react-router';
+import Topbar from './Topbar';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const token = localStorage.getItem('ahub-token');
@@ -9,7 +10,10 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <>
+  <Topbar />
+    {children}
+  </>;
 };
 
 export default ProtectedRoute;

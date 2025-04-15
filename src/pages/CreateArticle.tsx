@@ -4,10 +4,12 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import 'react-quill-new/dist/quill.bubble.css'; // Optional: For bubble style
 import axiosInstance from '../helpers/axios';
+import { useNavigate } from 'react-router';
 
 const CreateArticle = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [editorContent, setEditorContent] = useState('');
+  const navigate = useNavigate();
   
   const {
     register,
@@ -26,7 +28,7 @@ const CreateArticle = () => {
     console.log(data);
     axiosInstance.post('/post', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then((response) => {
-        console.log(response);
+        navigate(`/article/${response?.data?.data?._id}`);
       })
       .catch((error) => {
         console.error(error);

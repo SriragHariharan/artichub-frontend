@@ -1,13 +1,13 @@
-import { Heart, Bookmark } from "lucide-react";
+import { Heart, Edit, Trash } from "lucide-react";
 import { useState } from "react";
-import { useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import useArticleDetails from "../hooks/useArticleDetails";
+import axiosInstance from "../helpers/axios";
 
 
 const ArticleDetail = () => {
   const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { articleDetails, loading, error } = useArticleDetails({ id });
 
@@ -15,8 +15,14 @@ const ArticleDetail = () => {
     setIsLiked((prev) => !prev);
   };
 
-  const handleBookmark = () => {
-    setIsBookmarked((prev) => !prev);
+  const handleDeleteArticle = () => {
+    axiosInstance.delete(`/post/${id}`)
+    .then((response) => {
+      console.log('Article deleted successfully:', response.data);
+      navigate('/mine');
+    }).catch((error) => {
+      console.error('Error deleting article:', error);
+    })
   };
 
   if (loading) {
@@ -109,16 +115,19 @@ const ArticleDetail = () => {
               </button>
             </div>
             <div>
-              <button
-                onClick={handleBookmark}
-                className={`p-2 rounded-full transition-colors ${
-                  isBookmarked
-                    ? "text-black bg-gray-200"
-                    : "text-gray-500 hover:bg-gray-100"
-                }`}
-              >
-                <Bookmark className={`w-5 h-5 ${isBookmarked ? "fill-current" : ""}`} />
-              </button>
+              
+                {
+                  articleDetails?.edit && articleDetails?.delete && (
+                    <div className="flex space-x-2">
+                      <Link to={`/edit/${id}`} className='w-5 h-5 text-8xl text-green-600'>
+                        <Edit className='w-5 h-5 text-8xl text-blue-700' />
+                      </Link>
+                      <button onClick={handleDeleteArticle} className='w-5 h-5 text-8xl text-red-400'>
+                        <Trash className='w-5 h-5 text-8xl text-red-400' />
+                      </button>
+                    </div>
+                  )
+                }
             </div>
           </div>
         </div>

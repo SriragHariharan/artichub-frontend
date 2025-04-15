@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import axiosInstance from '../helpers/axios';
+import useArticleDetails from '../hooks/useArticleDetails';
 
 interface ArticleFormData {
   title: string;
@@ -19,89 +20,63 @@ interface Category {
 
 const EditArticle = () => {
   const { id } = useParams<{ id: string }>();
+  const {articleDetails, loading, error} = useArticleDetails({ id });
   const navigate = useNavigate();
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [editorContent, setEditorContent] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [editorContent, setEditorContent] = useState( articleDetails?.description ||'');
+
+  console.log(articleDetails, "  ::AD")
   
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    reset,
+      register,
+      handleSubmit,
+      formState: { errors },
+      setValue,
+      reset,
   } = useForm<ArticleFormData>();
 
-  const categories: Category[] = [
-    { id: "sports", name: "Sports" },
-    { id: "politics", name: "Politics" },
-    { id: "films", name: "Films" },
-    { id: "space", name: "Space" },
-    { id: "cooking", name: "Cooking" },
-  ];
-
-  // Fetch article data on component mount
+  // Reset form when articleDetails changes
   useEffect(() => {
-    const fetchArticle = async () => {
-      try {
-        const response = await axiosInstance.get(`/post/${id}`);
-        const article = response.data;
-        
-        // Set form values
-        reset({
-          title: article.title,
-          category: article.category,
-          description: article.description,
-          image: article.image || null,
-        });
-        
-        setEditorContent(article.description);
-        if (article.image) {
-          setImagePreview(article.image);
-        }
-        
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching article:', error);
-        navigate('/articles', { replace: true });
-      }
-    };
+    if (articleDetails) {
+      reset({
+        title: articleDetails.title,
+        description: articleDetails.description,
+      });
+      setEditorContent(articleDetails.description);
+    }
+  }, [articleDetails, reset]);
 
-    fetchArticle();
-  }, [id, reset, navigate]);
+
+
+
+  // const categories: Category[] = [
+  //   { id: "sports", name: "Sports" },
+  //   { id: "politics", name: "Politics" },
+  //   { id: "films", name: "Films" },
+  //   { id: "space", name: "Space" },
+  //   { id: "cooking", name: "Cooking" },
+  // ];
 
   const onSubmit = async (data: ArticleFormData) => {
     try {
-      const formData = new FormData();
-      formData.append('title', data.title);
-      formData.append('category', data.category);
-      formData.append('description', data.description);
-      
-      if (typeof data.image !== 'string' && data.image) {
-        formData.append('image', data.image);
-      }
+      // const formData = new FormData();
+      // formData.append('title', data.title);
+      // formData.append('description', data.description);
 
-      await axiosInstance.put(`/post/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      console.log(data);
+
+      axiosInstance.put(`/post/${id}`, data)
+      .then((response) => {
+        console.log('Article updated successfully:', response.data);
+        navigate(`/article/${id}`);
+      }).catch((error) => {
+        console.error('Error updating article:', error);
+      })
       
-      navigate(`/article/${id}`);
     } catch (error) {
       console.error('Error updating article:', error);
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setValue('image', file);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const modules = {
     toolbar: [
@@ -120,14 +95,6 @@ const EditArticle = () => {
     'header', 'bold', 'italic', 'underline', 'strike',
     'list', 'bullet', 'link', 'image',
   ];
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg font-semibold">Loading article...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -161,57 +128,6 @@ const EditArticle = () => {
             {errors?.title && (
               <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
             )}
-          </div>
-
-          {/* Category Dropdown */}
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="category"
-              {...register('category', { required: 'Category is required' })}
-              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black ${
-                errors?.category ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {errors?.category && (
-              <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
-            )}
-          </div>
-
-          {/* Featured Image */}
-          <div>
-            <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
-              Featured Image
-            </label>
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
-                <input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
-                />
-                {errors?.image && (
-                  <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">JPEG or PNG, max 2MB</p>
-              </div>
-              {imagePreview && (
-                <div className="w-20 h-20 border border-gray-300 rounded-md overflow-hidden">
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Content Editor */}
