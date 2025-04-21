@@ -1,16 +1,9 @@
+import { Navigate, Outlet } from 'react-router';
 
-import { ReactNode } from 'react';
-import { Navigate } from 'react-router';
-
-const UnProtectedRoute = ({ children }: { children: ReactNode }) => {
+const UnProtectedRoute = () => {
   const token = localStorage.getItem('ahub-token');
-  console.log(token, "token")
-
-  if (token) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
+  
+  return token ? <Navigate to="/" replace /> : <Outlet />;
 };
 
 export default UnProtectedRoute;

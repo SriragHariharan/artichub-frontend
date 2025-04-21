@@ -15,58 +15,21 @@ function App() {
     <Router>
       <Routes>
         {/* unprotected ones */}
-        <Route path="/signup" element={ <UnProtectedRoute>  <Signup />  </UnProtectedRoute> } />
-        <Route path="/login"  element={ <UnProtectedRoute>  <Login />   </UnProtectedRoute> } />
+        <Route element={<UnProtectedRoute />}>
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+        </Route>
+
 
         {/* protected ones */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Homepage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/create"
-          element={
-            <ProtectedRoute>
-              <CreateArticle />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/account"
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/article/:id"
-          element={
-            <ProtectedRoute>
-              <ArticleDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/edit/:id"
-          element={
-            <ProtectedRoute>
-              <EditArticle />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/mine"
-          element={
-            <ProtectedRoute>
-              <MyArticles />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={ <ProtectedRoute /> }>
+            <Route index element={ <Homepage /> } />
+            <Route path="/create" element={ <CreateArticle /> } />
+            <Route path="/account" element={ <SettingsPage /> } />
+            <Route path="/article/" element={ <ArticleDetail /> } />
+            <Route path="/edit" element={ <EditArticle /> } />
+            <Route path="/mine" element={ <MyArticles /> } />
+        </Route>
 
         <Route path="*" element={<div className='text-center text-6xl'>404 Not Found</div>} />
       </Routes>

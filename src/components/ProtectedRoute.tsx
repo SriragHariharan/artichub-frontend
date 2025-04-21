@@ -1,20 +1,12 @@
 
-import { Navigate } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import Topbar from './Topbar';
-import { ReactNode } from 'react';
 
-const ProtectedRoute = ({ children }: { children: ReactNode }) => {
+const ProtectedRoute = () => {
   const token = localStorage.getItem('ahub-token');
   console.log(token, "token")
 
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>
-  <Topbar />
-    {children}
-  </>;
+  return token ? <><Topbar /><Outlet /></> : <Navigate to="/login" replace />
 };
 
 export default ProtectedRoute;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams, useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import axiosInstance from '../helpers/axios';
@@ -15,7 +15,9 @@ interface ArticleFormData {
 
 
 const EditArticle = () => {
-  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  console.log("article ID::: ",location?.state?.articleDetails?._id)
+  const id = location?.state?.articleDetails?._id;
   const {articleDetails,  error} = useArticleDetails({ id });
   const navigate = useNavigate();
   const [editorContent, setEditorContent] = useState( articleDetails?.description ||'');
@@ -49,7 +51,7 @@ const EditArticle = () => {
       axiosInstance.put(`/post/${id}`, data)
       .then((response) => {
         console.log('Article updated successfully:', response.data);
-        navigate(`/article/${id}`);
+        navigate('/article', { state: { article: {_id: id} } });
       }).catch((error) => {
         console.error('Error updating article:', error);
       })

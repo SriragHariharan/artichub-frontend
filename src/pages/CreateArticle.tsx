@@ -39,7 +39,8 @@ const CreateArticle = () => {
     console.log(data);
     axiosInstance.post('/post', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then((response) => {
-        navigate(`/article/${response?.data?.data?._id}`);
+        navigate(`/article`, { state: { article: { _id: response.data?.data?._id } } });
+        //navigate(`/article/${response?.data?.data?._id}`);
       })
       .catch((error) => {
         console.error(error);

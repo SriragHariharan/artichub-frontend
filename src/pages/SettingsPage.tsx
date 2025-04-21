@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form';
 import useProfile from '../hooks/useProfile';
 import axiosInstance from '../helpers/axios';
 import { useNavigate } from 'react-router';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SettingsPage = () => {
   const {profile, error} = useProfile();
@@ -10,7 +12,7 @@ const SettingsPage = () => {
   const [preferencesError, setPreferencesError] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [showPasswords, setShowPasswords] = useState(false); // State for password visibility
+  const [showPasswords, setShowPasswords] = useState(false);
 
   const {
     register: registerProfile,
@@ -61,9 +63,11 @@ const SettingsPage = () => {
   const onSubmitUsername = (data: { username: string }) => {
     axiosInstance.put("/profile/username", data)
       .then((response) => {
+        toast.success('Username updated successfully!');
         console.log(response?.data?.data);
       })
       .catch((error) => {
+        toast.error(error?.response?.data?.message || 'Failed to update username');
         console.error(error);
       });
   };
@@ -80,11 +84,16 @@ const SettingsPage = () => {
           },
         })
         .then((response) => {
+          toast.success('Profile picture updated successfully!');
           console.log('Profile picture updated:', response.data);
         })
         .catch((error) => {
-          console.error('Error uploading profile picture:', error?.response?.data?.message);
+          const errorMsg = error?.response?.data?.message || 'Error uploading profile picture';
+          toast.error(errorMsg);
+          console.error('Error uploading profile picture:', errorMsg);
         });
+    } else {
+      toast.warning('Please select a profile picture first');
     }
   };
 
@@ -93,10 +102,13 @@ const SettingsPage = () => {
     console.log(selectedPrefs);
     axiosInstance.put("/profile/interests", { interests: selectedPrefs })
       .then((response) => {
+        toast.success('Preferences updated successfully!');
         console.log(response?.data?.data);
-    })
+      })
       .catch((error) => {
-        setPreferencesError(error?.response?.data?.message);
+        const errorMsg = error?.response?.data?.message || 'Failed to update preferences';
+        setPreferencesError(errorMsg);
+        toast.error(errorMsg);
       });
   }
 
@@ -105,14 +117,17 @@ const SettingsPage = () => {
     console.log(data);
     axiosInstance.put("/auth/password", data)
       .then((response) => {
+        toast.success('Password updated successfully! Please login again.');
         console.log(response?.data);
         resetPasswordForm();
         localStorage.removeItem('ahub-token');
         navigate("/login");
       })
       .catch((error) => {
-        console.error(error?.response?.data?.message);
-        setUpdatePasswordError(error?.response?.data?.message);
+        const errorMsg = error?.response?.data?.message || 'Failed to update password';
+        console.error(errorMsg);
+        setUpdatePasswordError(errorMsg);
+        toast.error(errorMsg);
       });
   };
 
@@ -120,13 +135,25 @@ const SettingsPage = () => {
     setPreferences((prev) => ({ ...prev, [pref]: !prev[pref] }));
   };
 
-  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPasswords(!showPasswords);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      {/* Toast Container */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 space-y-12">
         {/* Header */}
         <div className="text-center">

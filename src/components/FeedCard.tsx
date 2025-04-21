@@ -25,7 +25,7 @@ interface FeedCardProps {
 function FeedCard({ article }: FeedCardProps) {
 
   return (
-    <Link to={`/article/${article?._id}`} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1 cursor-pointer">
+    <Link to="/article" state={{ article }} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1 cursor-pointer">
       {/* Article Image - Full width at top */}
       <div className="w-full h-48 overflow-hidden">
         <img

@@ -1,13 +1,15 @@
 import { Heart, Edit, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import useArticleDetails from "../hooks/useArticleDetails";
 import axiosInstance from "../helpers/axios";
 
 
 const ArticleDetail = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  console.log(location?.state?.article?._id)
+  const id = location.state?.article?._id as string;
   const { articleDetails, loading, error } = useArticleDetails({ id });
 
   const [isLiked, setIsLiked] = useState(false);
@@ -143,7 +145,7 @@ const ArticleDetail = () => {
                 {
                   articleDetails?.edit && articleDetails?.delete && (
                     <div className="flex space-x-2">
-                      <Link to={`/edit/${id}`} className='w-5 h-5 text-8xl text-green-600'>
+                      <Link to="/edit" state={{ articleDetails }} className='w-5 h-5 text-8xl text-green-600'>
                         <Edit className='w-5 h-5 text-8xl text-blue-700' />
                       </Link>
                       <button onClick={handleDeleteArticle} className='w-5 h-5 text-8xl text-red-400'>
